@@ -27,3 +27,12 @@ provider "azurerm" {
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
 }
+```
+
+## Usage
+
+Prod:
+- terraform init --var-file=./prod/terraform.tfvars
+
+Dev:
+- terraform init --var-file=./dev/terraform.tfvars
