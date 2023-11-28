@@ -1,0 +1,46 @@
+image:
+  name: hashicorp/terraform:light
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+before_script:
+  - terraform --version
+
+stages:
+  - plan-dev
+  - apply-dev
+  - destroy-dev
+
+plan-dev:
+  stage: plan-dev
+  script:
+    - rm -fr .terraform
+    - terraform init ./dev/
+    - terraform validate ./dev/
+    - terraform plan -var-file="./dev/terraform.tfvars" -out=./dev/out.tf ./dev/
+
+apply-dev:
+  stage: apply-dev
+  script:
+    - terraform init ./dev/
+    - terraform apply -var-file="./dev/terraform.tfvars" -auto-approve -state-out=./dev/out.tf  ./dev/
+  dependencies:
+    - plan-dev
+  artifacts:
+    paths:
+    - kubeconfig
+    expire_in: 1 day 
+
+destroy-dev:
+    stage: destroy-dev
+    script:
+      - rm -rf .terraform
+      - terraform --version
+      - terraform init ./dev/
+      - terraform destroy -var-file="./dev/terraform.tfvars" -force ./dev/
+    dependencies:
+      - apply-dev
+    when: manual
+#    allow_failure: false
+    
